@@ -417,7 +417,7 @@
                   <span class="post-meta-item-text">字数统计</span>
                 
                 <span title="字数统计">
-                  1.6k
+                  1.8k
                 </span>
               
 
@@ -452,203 +452,14 @@
 
       
         
-          
-            <h1 id="NSTimer"><a href="#NSTimer" class="headerlink" title="NSTimer"></a>NSTimer</h1><h2 id="NSTimer-创建定时器"><a href="#NSTimer-创建定时器" class="headerlink" title="NSTimer 创建定时器"></a>NSTimer 创建定时器</h2><p>1.timer分为invocation和selector两种调用方式，其实这两种区别不大，一般我们用selector方式较为方便。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">NSMethodSignature  *signature = [[self class] instanceMethodSignatureForSelector:@selector(Timered:)];</span><br><span class="line">NSInvocation* invocation = [NSInvocation invocationWithMethodSignature:signature];</span><br><span class="line">invocation.target = self;</span><br><span class="line">invocation.selector = @selector(Timered:);</span><br><span class="line">NSTimer *timer = [NSTimer scheduledTimerWithTimeInterval:1 invocation:invocation repeats:YES];</span><br><span class="line"></span><br><span class="line">NSTimer *timer = [NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(Timered:) userInfo:nil repeats:YES];</span><br></pre></td></tr></table></figure></p>
-<p>2.scheduledTimerWith和timerWith这是因为NSTimer是加到runloop中执行的。看scheduledTimerWith的函数说明，创建并安排到runloop的default mode中。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">NSTimer *timer = [NSTimer timerWithTimeInterval:1.0 target:self selector:@selector(Timered:) userInfo:nil repeats:YES];</span><br><span class="line">[[NSRunLoop mainRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode];</span><br></pre></td></tr></table></figure></p>
-<h2 id="NSTimer-坑"><a href="#NSTimer-坑" class="headerlink" title="NSTimer 坑"></a>NSTimer 坑</h2><h3 id="坑一：子线程启动定时器问题"><a href="#坑一：子线程启动定时器问题" class="headerlink" title="坑一：子线程启动定时器问题"></a>坑一：子线程启动定时器问题</h3><p>主线程默认启动了runloop，可是子线程没有默认的runloop，我们在子线程启动定时器是不生效的,解决:在子线程启动一下runloop就可以了。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">dispatch_async(dispatch_get_global_queue(0, 0), ^&#123;</span><br><span class="line">//        NSTimer* timer = [NSTimer timerWithTimeInterval:1 target:self selector:@selector(Timered:) userInfo:nil repeats:YES];</span><br><span class="line">//        [[NSRunLoop currentRunLoop] addTimer:timer forMode:NSRunLoopCommonModes];</span><br><span class="line">// scheduledTimerWith:创建并安排到runloop的default mode中</span><br><span class="line">NSTimer *timer = [NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(Timered:) userInfo:nil repeats:YES];</span><br><span class="line"></span><br><span class="line">// 子线程启动runloop</span><br><span class="line">[[NSRunLoop currentRunLoop] run];</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></p>
-<h3 id="坑二：runloop的mode问题"><a href="#坑二：runloop的mode问题" class="headerlink" title="坑二：runloop的mode问题"></a>坑二：runloop的mode问题</h3><p>UITrackingRunLoopMode和NSDefaultRunLoopMode都被标记为了common模式，所以只需要将timer的模式设置为NSRunLoopCommonModes，就可以在默认模式和追踪模式都能够运行。</p>
-<h3 id="坑三：循环引用问题"><a href="#坑三：循环引用问题" class="headerlink" title="坑三：循环引用问题"></a>坑三：循环引用问题</h3><p>原因：就是NSTimer的target被强引用了，而通常target就是所在的控制器，他又强引用的timer，造成了循环引用<br>以下两种timer不会有循环引用：<br>（1）非repeat类型的。非repeat类型的timer不会强引用target，因此不会出现循环引用。<br>（2）block类型的，新api。iOS 10之后才支持，因此对于还要支持老版本的app来说，这个API暂时无法使用。当然，block内部的循环引用也要避免。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[NSTimer timerWithTimeInterval:1 repeats:YES block:^(NSTimer * _Nonnull timer) &#123;</span><br><span class="line">&#125;];</span><br><span class="line">[NSTimer scheduledTimerWithTimeInterval:1 repeats:YES block:^(NSTimer * _Nonnull timer) &#123;</span><br><span class="line">&#125;];</span><br></pre></td></tr></table></figure></p>
-<p>强调：不是解决了循环引用，target就可以释放了，别忘了在持有timer的类dealloc的时候执行invalidate。</p>
-<p>NSTimer* timer = [NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(Timered:) userInfo:nil repeats:YES];<br>如上面代码，这个timer并没有被self引用，那么为什么self不会被释放呢？因为timer被加到了runloop中，timer又强引用了self，所以timer一直存在的话，self也不会释放<br>解决:打破timer对target的强引用。</p>
-<p>解决方式一：NSTimer会保留其目标对象<br>解释：将强引用的target变成了NSTimer的类对象。类对象本身是单例的，是不会释放的，所以强引用也无所谓。执行的block通过userInfo传递给定时器的响应函数timered:。循环引用被打破的结果是：<br>timer的使用者强引用timer。<br>timer强引用NSTimer的类对象。<br>timer的使用者在block中通过weak的形式使用，因此是被timer弱引用。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">__weak id weakSelf = self;</span><br><span class="line">NSTimer* timer = [NSTimer scheduledBlockTimerWithTimeInterval:1 repeats:YES blockTimer:^(NSTimer *timer) &#123;</span><br><span class="line">NSLog(@&quot;block %@&quot;,weakSelf);</span><br><span class="line">&#125;];</span><br></pre></td></tr></table></figure></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">@interface NSTimer (BlockTimer)</span><br><span class="line"></span><br><span class="line">+ (NSTimer*)scheduledBlockTimerWithTimeInterval:(NSTimeInterval)interval repeats:(BOOL)repeats blockTimer:(void (^)(NSTimer *))block;</span><br><span class="line"></span><br><span class="line">@end</span><br><span class="line"></span><br><span class="line">@implementation NSTimer (BlockTimer)</span><br><span class="line"></span><br><span class="line">+ (NSTimer*)scheduledBlockTimerWithTimeInterval:(NSTimeInterval)interval repeats:(BOOL)repeats blockTimer:(void (^)(NSTimer *))block&#123;</span><br><span class="line">// 将强引用的target变成了NSTimer的类对象。类对象本身是单例的，是不会释放的，所以强引用也无所谓。执行的block通过userInfo传递给定时器的响应函数timered:</span><br><span class="line">NSTimer* timer = [NSTimer scheduledTimerWithTimeInterval:interval target:self selector:@selector(timered:) userInfo:[block copy] repeats:repeats];</span><br><span class="line">return timer;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">+ (void)timered:(NSTimer*)timer &#123;</span><br><span class="line">void (^block)(NSTimer *timer)  = timer.userInfo;</span><br><span class="line">block(timer);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">@end</span><br></pre></td></tr></table></figure>
-<p>解决方式二：NSProxy的方式<br>建立一个proxy类，让timer强引用这个实例，这个类中对timer的使用者target采用弱引用的方式，再把需要执行的方法都转发给timer的使用者。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">//NSTimer *timer = [ProxyTimer scheduledProxyTimerWithTimeInterval:1 target:self selector:@selector(Timered:) userInfo:nil repeats:YES];</span><br><span class="line">NSTimer *timer = [ProxyTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(Timered:) userInfo:nil repeats:YES];</span><br></pre></td></tr></table></figure></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">@interface ProxyObject : NSProxy</span><br><span class="line">@property (weak, nonatomic) id target;</span><br><span class="line">+ (instancetype)proxyWithTarget:(id)target;</span><br><span class="line">@end</span><br><span class="line"></span><br><span class="line">@implementation ProxyObject</span><br><span class="line"></span><br><span class="line">+ (instancetype)proxyWithTarget:(id)target &#123;</span><br><span class="line">ProxyObject* proxy = [[self class] alloc];</span><br><span class="line">proxy.target = target;</span><br><span class="line">return proxy;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (NSMethodSignature *)methodSignatureForSelector:(SEL)sel&#123;</span><br><span class="line">return [self.target methodSignatureForSelector:sel];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (void)forwardInvocation:(NSInvocation *)invocation&#123;</span><br><span class="line">SEL sel = [invocation selector];</span><br><span class="line">if ([self.target respondsToSelector:sel]) &#123;</span><br><span class="line">[invocation invokeWithTarget:self.target];</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">@end</span><br><span class="line"></span><br><span class="line">@implementation ProxyTimer</span><br><span class="line">+ (NSTimer *)scheduledTimerWithTimeInterval:(NSTimeInterval)ti target:(id)aTarget selector:(SEL)aSelector userInfo:(nullable id)userInfo repeats:(BOOL)yesOrNo&#123;</span><br><span class="line">NSTimer* timer = [NSTimer scheduledTimerWithTimeInterval:ti target:[ProxyObject proxyWithTarget: aTarget] selector:aSelector userInfo:userInfo repeats:yesOrNo];</span><br><span class="line">return timer;</span><br><span class="line">&#125;</span><br><span class="line">@end</span><br></pre></td></tr></table></figure>
-<p>解决方式三：封装timer，弱引用target<br>类似NSProxy的方式，建立一个桥接timer的实例，弱引用target，让timer强引用这个实例<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">.h</span><br><span class="line">NSTimer *timer = [NSTimer scheduledWeakTimerWithTimeInterval:1 target:self selector:@selector(Timered:) userInfo:nil repeats:YES];</span><br></pre></td></tr></table></figure></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">@interface WeakTimer : NSObject</span><br><span class="line"></span><br><span class="line">@property (nonatomic, weak) id target;</span><br><span class="line">@property (nonatomic) SEL selector;</span><br><span class="line"></span><br><span class="line">@end</span><br><span class="line"></span><br><span class="line">@interface NSTimer(NormalTimer)</span><br><span class="line">+ (NSTimer *)scheduledWeakTimerWithTimeInterval:(NSTimeInterval)ti target:(id)aTarget selector:(SEL)aSelector userInfo:(nullable id)userInfo repeats:(BOOL)yesOrNo;</span><br><span class="line">@end</span><br><span class="line"></span><br><span class="line">.m</span><br><span class="line">@implementation WeakTimer</span><br><span class="line">- (void)dealloc&#123;</span><br><span class="line">NSLog(@&quot;timer dealloc&quot;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (void)timered:(NSTimer*)timer&#123;</span><br><span class="line">[self.target performSelector:self.selector withObject:timer];</span><br><span class="line">&#125;</span><br><span class="line">@end</span><br><span class="line"></span><br><span class="line">@implementation NSTimer(NormalTimer)</span><br><span class="line">+ (NSTimer *)scheduledWeakTimerWithTimeInterval:(NSTimeInterval)ti target:(id)aTarget selector:(SEL)aSelector userInfo:(nullable id)userInfo repeats:(BOOL)yesOrNo&#123;</span><br><span class="line">WeakTimer *weakTimer = [[WeakTimer alloc] init];</span><br><span class="line">weakTimer.target = aTarget;</span><br><span class="line">weakTimer.selector = aSelector;</span><br><span class="line">NSTimer* timer = [NSTimer scheduledTimerWithTimeInterval:ti target:weakTimer selector:@selector(timered:) userInfo:userInfo repeats:yesOrNo];</span><br><span class="line">return timer;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">@end</span><br></pre></td></tr></table></figure>
-<h1 id="GCD定时器"><a href="#GCD定时器" class="headerlink" title="GCD定时器"></a>GCD定时器</h1><p>GCD定时器的好处是，他并不是加入runloop执行的，因此子线程也可以使用。也不会引起循环引用的问题。<br>注意:需要把timer声明为属性，否则，由于这种timer并不是添加到runloop中的，直接就被释放了。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">__weak id weakSelf = self;</span><br><span class="line">timer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, dispatch_get_main_queue());</span><br><span class="line">dispatch_source_set_timer(timer, DISPATCH_TIME_NOW, 5 * NSEC_PER_SEC, 1 * NSEC_PER_SEC);</span><br><span class="line">dispatch_source_set_event_handler(timer, ^&#123;</span><br><span class="line">[weakSelf timered];</span><br><span class="line">&#125;);</span><br><span class="line">dispatch_resume(timer);</span><br><span class="line">// 取消定时器</span><br><span class="line">//dispatch_suspend(timer);</span><br></pre></td></tr></table></figure></p>
-<h1 id="dispatch-after"><a href="#dispatch-after" class="headerlink" title="dispatch_after"></a>dispatch_after</h1><p>dispatch_after内部也是使用的Dispatch Source。因此也避免了NSTimer的很多坑。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^&#123;</span><br><span class="line"></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></p>
-<h1 id="performSelector：after"><a href="#performSelector：after" class="headerlink" title="performSelector：after"></a>performSelector：after</h1><p>这种方式通常是用于在延时后去处理一些操作，其内部也是基于将timer加到runloop中实现的。因此也存在NSTimer的关于子线程runloop的问题。这种调用方式的好处是可以取消。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[self performSelector:@selector(Timered:) withObject:nil afterDelay:3];</span><br><span class="line">[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(Timered:) object:nil];</span><br></pre></td></tr></table></figure></p>
-<h1 id="延时操作"><a href="#延时操作" class="headerlink" title="延时操作"></a>延时操作</h1><p>延时一次操作的选择：<br>几种方式都是定时器，都可以实现延时操作。综合相比：如果只是单独一次的延时操作，NSTimer和GCD的定时器都显得有些笨重。performSelector方式比较合适，但是又收到了子线程runloop的限制。因此，dispatch_after是最优的选择。</p>
-<h2 id="取消延时操作："><a href="#取消延时操作：" class="headerlink" title="取消延时操作："></a>取消延时操作：</h2><p>NSTimer可以通过invalidate来停止定时器。<br>GCD的定时器可以调用dispatch_suspend来挂起。<br>performSelector：after可以通过cancelPreviousPerformRequestsWithTarget取消。<br>dispatch_after可以通过dispatch_block_cancel来取消。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">//        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^&#123;</span><br><span class="line">//            NSLog(@&quot;把我取消&quot;);</span><br><span class="line">//        &#125;);</span><br><span class="line"></span><br><span class="line">@property (nonatomic,copy) void (^delayStartBlock)(void);</span><br><span class="line"></span><br><span class="line">self.delayStartBlock = dispatch_block_create(0, ^&#123;</span><br><span class="line">NSLog(@&quot;把我取消&quot;);</span><br><span class="line">&#125;);</span><br><span class="line">dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(),self.delayStartBlock);</span><br><span class="line">dispatch_block_cancel(self.delayStartBlock);</span><br></pre></td></tr></table></figure></p>
-<p><a href="https://github.com/guchunli/TimerDemo.git" target="_blank" rel="noopener">demo</a></p>
-<p>参考文章：<a href="https://www.jianshu.com/p/ca579c502894" target="_blank" rel="noopener">IOS定时器操作和NSTimer的各种坑</a></p>
-
-          
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope="" itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="https://guchunli.github.io/2019/05/24/OC面试题总结-2019/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="谷春丽">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="guchunli">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/05/24/OC面试题总结-2019/" itemprop="url">OC面试题总结-2019</a></h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-05-24T11:11:10+08:00">
-                2019-05-24
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/note/" itemprop="url" rel="index">
-                    <span itemprop="name">笔记</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-            <div class="post-wordcount">
-              
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-file-word-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">字数统计</span>
-                
-                <span title="字数统计">
-                  13
-                </span>
-              
-
-              
-                <span class="post-meta-divider">|</span>
-              
-
-              
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-clock-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">阅读时长</span>
-                
-                <span title="阅读时长">
-                  1
-                </span>
-              
-            </div>
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><a href="https://guchunli.github.io/2019/08/11/iOS定时器相关/">iOS定时器相关</a></p>
-<p><a href="https://guchunli.github.io/2017/03/22/iOS-runtime学习笔记/">iOS runtime与runloop学习笔记</a></p>
-
-          
+          <h1 id="NSTimer"><a href="#NSTimer" class="headerlink" title="NSTimer"></a>NSTimer</h1><h2 id="NSTimer-创建定时器"><a href="#NSTimer-创建定时器" class="headerlink" title="NSTimer 创建定时器"></a>NSTimer 创建定时器</h2>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2019/08/11/iOS定时器相关/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -2105,6 +1916,184 @@
 
 
     
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope="" itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://guchunli.github.io/2019/01/03/OC进阶书籍阅读笔记/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="谷春丽">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="guchunli">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/01/03/OC进阶书籍阅读笔记/" itemprop="url">OC进阶书籍阅读笔记</a></h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-03T15:28:52+08:00">
+                2019-01-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/note/" itemprop="url" rel="index">
+                    <span itemprop="name">笔记</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  7.8k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                  28
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h1 id="《编写高质量iOS与OS-X代码的52个有效方法》"><a href="#《编写高质量iOS与OS-X代码的52个有效方法》" class="headerlink" title="《编写高质量iOS与OS X代码的52个有效方法》"></a>《编写高质量iOS与OS X代码的52个有效方法》</h1><h2 id="熟悉Objective-C"><a href="#熟悉Objective-C" class="headerlink" title="熟悉Objective-C"></a>熟悉Objective-C</h2><h3 id="1-了解Objective-C语言的起源"><a href="#1-了解Objective-C语言的起源" class="headerlink" title="1.了解Objective-C语言的起源"></a>1.了解Objective-C语言的起源</h3><h3 id="2-在类的头文件中尽量少引入其他头文件"><a href="#2-在类的头文件中尽量少引入其他头文件" class="headerlink" title="2.在类的头文件中尽量少引入其他头文件"></a>2.在类的头文件中尽量少引入其他头文件</h3><ul>
+<li>@class 向前声明
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2019/01/03/OC进阶书籍阅读笔记/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </li></ul></div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
   </section>
 
   
@@ -2263,7 +2252,7 @@ show_date_time();
 
 <div class="theme-info">
   <div class="powered-by"></div>
-  <span class="post-count">博客全站共168k字</span>
+  <span class="post-count">博客全站共170.6k字</span>
 </div>
         
 
