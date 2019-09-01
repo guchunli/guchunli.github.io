@@ -105,18 +105,18 @@
 
 
 
-<meta name="description" content="1234#pragma clang diagnostic push#pragma clang diagnostic ignored &amp;quot;相关命令&amp;quot;// 这是是出现警告的代码#pragma clang diagnostic pop 常见的命令有1.方法废弃1234#pragma clang diagnostic push  #pragma clang diagnostic igno">
+<meta name="description" content="忽略警告">
 <meta name="keywords" content="ios,swift,mac">
 <meta property="og:type" content="article">
 <meta property="og:title" content="iOS中手动忽略编译警告">
 <meta property="og:url" content="https://guchunli.github.io/2019/08/15/iOS中手动忽略编译警告/index.html">
 <meta property="og:site_name" content="guchunli">
-<meta property="og:description" content="1234#pragma clang diagnostic push#pragma clang diagnostic ignored &amp;quot;相关命令&amp;quot;// 这是是出现警告的代码#pragma clang diagnostic pop 常见的命令有1.方法废弃1234#pragma clang diagnostic push  #pragma clang diagnostic igno">
+<meta property="og:description" content="忽略警告">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-08-15T07:33:32.184Z">
+<meta property="og:updated_time" content="2019-08-24T06:54:46.737Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="iOS中手动忽略编译警告">
-<meta name="twitter:description" content="1234#pragma clang diagnostic push#pragma clang diagnostic ignored &amp;quot;相关命令&amp;quot;// 这是是出现警告的代码#pragma clang diagnostic pop 常见的命令有1.方法废弃1234#pragma clang diagnostic push  #pragma clang diagnostic igno">
+<meta name="twitter:description" content="忽略警告">
 
 
 
@@ -414,7 +414,7 @@
                   <span class="post-meta-item-text">字数统计</span>
                 
                 <span title="字数统计">
-                  186
+                  190
                 </span>
               
 
@@ -448,7 +448,11 @@
       
 
       
-        <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#pragma clang diagnostic push</span><br><span class="line">#pragma clang diagnostic ignored &quot;相关命令&quot;</span><br><span class="line">// 这是是出现警告的代码</span><br><span class="line">#pragma clang diagnostic pop</span><br></pre></td></tr></table></figure>
+        <ul>
+<li>忽略警告<a id="more"></a>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#pragma clang diagnostic push</span><br><span class="line">#pragma clang diagnostic ignored &quot;相关命令&quot;</span><br><span class="line">// 这是是出现警告的代码</span><br><span class="line">#pragma clang diagnostic pop</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
 <p>常见的命令有<br>1.方法废弃<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#pragma clang diagnostic push  </span><br><span class="line">#pragma clang diagnostic ignored &quot;-Wdeprecated-declarations&quot;      </span><br><span class="line">//废弃的方法</span><br><span class="line">#pragma clang diagnostic pop</span><br></pre></td></tr></table></figure></p>
 <p>2.不兼容指针类型<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#pragma clang diagnostic push   </span><br><span class="line">#pragma clang diagnostic ignored &quot;-Wincompatible-pointer-types&quot;  </span><br><span class="line">//</span><br><span class="line">#pragma clang diagnostic pop</span><br></pre></td></tr></table></figure></p>
 <p>3.未使用变量<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#pragma clang diagnostic push     </span><br><span class="line">#pragma clang diagnostic ignored &quot;-Wunused-variable&quot;     </span><br><span class="line">int a;     </span><br><span class="line">#pragma clang diagnostic pop</span><br></pre></td></tr></table></figure></p>
@@ -470,7 +474,7 @@
   <p><span>本文标题:</span><a href="/2019/08/15/iOS中手动忽略编译警告/">iOS中手动忽略编译警告</a></p>
   <p><span>文章作者:</span><a href="/" title="访问 谷春丽 的个人博客">谷春丽</a></p>
   <p><span>发布时间:</span>2019年08月15日 - 14:08</p>
-  <p><span>最后更新:</span>2019年08月15日 - 15:08</p>
+  <p><span>最后更新:</span>2019年08月24日 - 14:08</p>
   <p><span>原始链接:</span><a href="/2019/08/15/iOS中手动忽略编译警告/" title="iOS中手动忽略编译警告">https://guchunli.github.io/2019/08/15/iOS中手动忽略编译警告/</a>
     <span class="copy-path" title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://guchunli.github.io/2019/08/15/iOS中手动忽略编译警告/" aria-label="复制成功！"></i></span>
   </p>
@@ -536,8 +540,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2019/08/11/iOS定时器相关/" rel="next" title="iOS定时器相关">
-                <i class="fa fa-chevron-left"></i> iOS定时器相关
+              <a href="/2019/08/15/iOS中的多线程/" rel="next" title="iOS中的多线程">
+                <i class="fa fa-chevron-left"></i> iOS中的多线程
               </a>
             
           </div>
@@ -609,7 +613,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives">
-                <span class="site-state-item-count">116</span>
+                <span class="site-state-item-count">117</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -720,7 +724,7 @@ show_date_time();
 
 <div class="theme-info">
   <div class="powered-by"></div>
-  <span class="post-count">博客全站共172k字</span>
+  <span class="post-count">博客全站共177.9k字</span>
 </div>
         
 
