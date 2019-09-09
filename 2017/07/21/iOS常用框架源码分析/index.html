@@ -89,7 +89,7 @@
 <link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css">
 
 
-  <meta name="keywords" content="第三方,">
+  <meta name="keywords" content="Hexo, NexT">
 
 
 
@@ -105,18 +105,18 @@
 
 
 
-<meta name="description" content="网络1.PPNetworkHelper  对AFNetworking 3.x 与YYCache的二次封装 简单易用，包含了缓存机制，控制台可以直接打印json中文字符">
-<meta name="keywords" content="第三方">
+<meta name="description" content="源码分析SDWebImageNSCache 类似可变字典，线程安全，使用可变字典自定义实现缓存时需要考虑加锁和释放锁 在内存不足时NSCache会自动释放存储的对象，不需要手动干预 NSCache的key不会被复制，所以key不需要实现NSCopying协议">
+<meta name="keywords" content="ios,swift,mac">
 <meta property="og:type" content="article">
-<meta property="og:title" content="iOS常用第三方框架">
-<meta property="og:url" content="https://guchunli.github.io/2017/07/21/iOS常用第三方框架/index.html">
+<meta property="og:title" content="iOS常用框架源码分析">
+<meta property="og:url" content="https://guchunli.github.io/2017/07/21/iOS常用框架源码分析/index.html">
 <meta property="og:site_name" content="guchunli">
-<meta property="og:description" content="网络1.PPNetworkHelper  对AFNetworking 3.x 与YYCache的二次封装 简单易用，包含了缓存机制，控制台可以直接打印json中文字符">
+<meta property="og:description" content="源码分析SDWebImageNSCache 类似可变字典，线程安全，使用可变字典自定义实现缓存时需要考虑加锁和释放锁 在内存不足时NSCache会自动释放存储的对象，不需要手动干预 NSCache的key不会被复制，所以key不需要实现NSCopying协议">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-08-08T10:21:48.700Z">
+<meta property="og:updated_time" content="2019-09-06T07:19:24.122Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="iOS常用第三方框架">
-<meta name="twitter:description" content="网络1.PPNetworkHelper  对AFNetworking 3.x 与YYCache的二次封装 简单易用，包含了缓存机制，控制台可以直接打印json中文字符">
+<meta name="twitter:title" content="iOS常用框架源码分析">
+<meta name="twitter:description" content="源码分析SDWebImageNSCache 类似可变字典，线程安全，使用可变字典自定义实现缓存时需要考虑加锁和释放锁 在内存不足时NSCache会自动释放存储的对象，不需要手动干预 NSCache的key不会被复制，所以key不需要实现NSCopying协议">
 
 
 
@@ -144,13 +144,13 @@
 
 
 
-  <link rel="canonical" href="https://guchunli.github.io/2017/07/21/iOS常用第三方框架/">
+  <link rel="canonical" href="https://guchunli.github.io/2017/07/21/iOS常用框架源码分析/">
 
 
 
 
 
-  <title>iOS常用第三方框架 | guchunli</title>
+  <title>iOS常用框架源码分析 | guchunli</title>
 </head>
 
 <body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -331,7 +331,7 @@
   
 
   <article class="post post-type-normal " itemscope="" itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="https://guchunli.github.io/2017/07/21/iOS常用第三方框架/">
+    <link itemprop="mainEntityOfPage" href="https://guchunli.github.io/2017/07/21/iOS常用框架源码分析/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
       <meta itemprop="name" content="谷春丽">
@@ -348,7 +348,7 @@
 
         
         
-          <h2 class="post-title" itemprop="name headline">iOS常用第三方框架</h2>
+          <h2 class="post-title" itemprop="name headline">iOS常用框架源码分析</h2>
         
 
         <div class="post-meta">
@@ -414,7 +414,7 @@
                   <span class="post-meta-item-text">字数统计</span>
                 
                 <span title="字数统计">
-                  413
+                  498
                 </span>
               
 
@@ -448,11 +448,16 @@
       
 
       
-        <h2 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h2><p>1.PPNetworkHelper</p>
+        <h1 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h1><h2 id="SDWebImage"><a href="#SDWebImage" class="headerlink" title="SDWebImage"></a>SDWebImage</h2><h3 id="NSCache"><a href="#NSCache" class="headerlink" title="NSCache"></a>NSCache</h3><ul>
+<li>类似可变字典，线程安全，使用可变字典自定义实现缓存时需要考虑加锁和释放锁</li>
+<li>在内存不足时NSCache会自动释放存储的对象，不需要手动干预</li>
+<li>NSCache的key不会被复制，所以key不需要实现NSCopying协议<a id="more"></a>
+</li>
+</ul>
+<h1 id="第三方框架"><a href="#第三方框架" class="headerlink" title="第三方框架"></a>第三方框架</h1><h2 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h2><p>1.PPNetworkHelper</p>
 <ul>
 <li>对AFNetworking 3.x 与YYCache的二次封装</li>
-<li>简单易用，包含了缓存机制，控制台可以直接打印json中文字符<a id="more"></a>
-</li>
+<li>简单易用，包含了缓存机制，控制台可以直接打印json中文字符</li>
 </ul>
 <p>2..YTKNetwork</p>
 <ul>
@@ -559,6 +564,35 @@
     <div>
       
         
+<div class="my_post_copyright">
+  <script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+
+  <!-- JS库 sweetalert 可修改路径 -->
+  <script src="https://cdn.bootcss.com/jquery/2.0.0/jquery.min.js"></script>
+  <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+  <p><span>本文标题:</span><a href="/2017/07/21/iOS常用框架源码分析/">iOS常用框架源码分析</a></p>
+  <p><span>文章作者:</span><a href="/" title="访问 谷春丽 的个人博客">谷春丽</a></p>
+  <p><span>发布时间:</span>2017年07月21日 - 10:07</p>
+  <p><span>最后更新:</span>2019年09月06日 - 15:09</p>
+  <p><span>原始链接:</span><a href="/2017/07/21/iOS常用框架源码分析/" title="iOS常用框架源码分析">https://guchunli.github.io/2017/07/21/iOS常用框架源码分析/</a>
+    <span class="copy-path" title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://guchunli.github.io/2017/07/21/iOS常用框架源码分析/" aria-label="复制成功！"></i></span>
+  </p>
+  <p><span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">署名-非商业性使用-禁止演绎 4.0 国际</a> 转载请保留原文链接及作者。</p>  
+</div>
+<script> 
+    var clipboard = new Clipboard('.fa-clipboard');
+      $(".fa-clipboard").click(function(){
+      clipboard.on('success', function(){
+        swal({   
+          title: "",   
+          text: '复制成功',
+          icon: "success", 
+          showConfirmButton: true
+          });
+        });
+    });  
+</script>
+
       
     </div>
 
@@ -595,12 +629,6 @@
     </div>
 
     <footer class="post-footer">
-      
-        <div class="post-tags">
-          
-            <a href="/tags/第三方/" rel="tag"># 第三方</a>
-          
-        </div>
       
 
       
@@ -715,7 +743,7 @@
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">52</span>
+                <span class="site-state-item-count">51</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
@@ -775,7 +803,7 @@ show_date_time();
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#网络"><span class="nav-number">1.</span> <span class="nav-text">网络</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基础组件库"><span class="nav-number">2.</span> <span class="nav-text">基础组件库</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#YYKit"><span class="nav-number">2.1.</span> <span class="nav-text">YYKit</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#等待加载提示"><span class="nav-number">3.</span> <span class="nav-text">等待加载提示</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#空白页面占位图"><span class="nav-number">4.</span> <span class="nav-text">空白页面占位图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#状态栏顶部通知"><span class="nav-number">5.</span> <span class="nav-text">状态栏顶部通知</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#键盘监听管理工具"><span class="nav-number">6.</span> <span class="nav-text">键盘监听管理工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#相册选择图片"><span class="nav-number">7.</span> <span class="nav-text">相册选择图片</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Badge"><span class="nav-number">8.</span> <span class="nav-text">Badge</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#日历"><span class="nav-number">9.</span> <span class="nav-text">日历</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#状态栏上方显示手机状态"><span class="nav-number">10.</span> <span class="nav-text">状态栏上方显示手机状态</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#跑马灯广告无线轮播"><span class="nav-number">11.</span> <span class="nav-text">跑马灯广告无线轮播</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FAQ视图"><span class="nav-number">12.</span> <span class="nav-text">FAQ视图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#卡片界面"><span class="nav-number">13.</span> <span class="nav-text">卡片界面</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#模仿Airbnb首页过渡动画"><span class="nav-number">14.</span> <span class="nav-text">模仿Airbnb首页过渡动画</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#界面转场动画集"><span class="nav-number">15.</span> <span class="nav-text">界面转场动画集</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#iOS的CSS"><span class="nav-number">16.</span> <span class="nav-text">iOS的CSS</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#动画加号按钮"><span class="nav-number">17.</span> <span class="nav-text">动画加号按钮</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Swift-3快速异步助手"><span class="nav-number">18.</span> <span class="nav-text">Swift 3快速异步助手</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#密码输入切换框"><span class="nav-number">19.</span> <span class="nav-text">密码输入切换框</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#美颜相机（仿faceU）"><span class="nav-number">20.</span> <span class="nav-text">美颜相机（仿faceU）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#多功能数据pickerView"><span class="nav-number">21.</span> <span class="nav-text">多功能数据pickerView</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#直播"><span class="nav-number">22.</span> <span class="nav-text">直播</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#视频播放"><span class="nav-number">23.</span> <span class="nav-text">视频播放</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#VR播放器"><span class="nav-number">24.</span> <span class="nav-text">VR播放器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#知识整合，学习资源"><span class="nav-number">25.</span> <span class="nav-text">知识整合，学习资源</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#源码分析"><span class="nav-number">1.</span> <span class="nav-text">源码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#SDWebImage"><span class="nav-number">1.1.</span> <span class="nav-text">SDWebImage</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#NSCache"><span class="nav-number">1.1.1.</span> <span class="nav-text">NSCache</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第三方框架"><span class="nav-number">2.</span> <span class="nav-text">第三方框架</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#网络"><span class="nav-number">2.1.</span> <span class="nav-text">网络</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基础组件库"><span class="nav-number">2.2.</span> <span class="nav-text">基础组件库</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#YYKit"><span class="nav-number">2.2.1.</span> <span class="nav-text">YYKit</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#等待加载提示"><span class="nav-number">2.3.</span> <span class="nav-text">等待加载提示</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#空白页面占位图"><span class="nav-number">2.4.</span> <span class="nav-text">空白页面占位图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#状态栏顶部通知"><span class="nav-number">2.5.</span> <span class="nav-text">状态栏顶部通知</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#键盘监听管理工具"><span class="nav-number">2.6.</span> <span class="nav-text">键盘监听管理工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#相册选择图片"><span class="nav-number">2.7.</span> <span class="nav-text">相册选择图片</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Badge"><span class="nav-number">2.8.</span> <span class="nav-text">Badge</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#日历"><span class="nav-number">2.9.</span> <span class="nav-text">日历</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#状态栏上方显示手机状态"><span class="nav-number">2.10.</span> <span class="nav-text">状态栏上方显示手机状态</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#跑马灯广告无线轮播"><span class="nav-number">2.11.</span> <span class="nav-text">跑马灯广告无线轮播</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FAQ视图"><span class="nav-number">2.12.</span> <span class="nav-text">FAQ视图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#卡片界面"><span class="nav-number">2.13.</span> <span class="nav-text">卡片界面</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#模仿Airbnb首页过渡动画"><span class="nav-number">2.14.</span> <span class="nav-text">模仿Airbnb首页过渡动画</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#界面转场动画集"><span class="nav-number">2.15.</span> <span class="nav-text">界面转场动画集</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#iOS的CSS"><span class="nav-number">2.16.</span> <span class="nav-text">iOS的CSS</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#动画加号按钮"><span class="nav-number">2.17.</span> <span class="nav-text">动画加号按钮</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Swift-3快速异步助手"><span class="nav-number">2.18.</span> <span class="nav-text">Swift 3快速异步助手</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#密码输入切换框"><span class="nav-number">2.19.</span> <span class="nav-text">密码输入切换框</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#美颜相机（仿faceU）"><span class="nav-number">2.20.</span> <span class="nav-text">美颜相机（仿faceU）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#多功能数据pickerView"><span class="nav-number">2.21.</span> <span class="nav-text">多功能数据pickerView</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#直播"><span class="nav-number">2.22.</span> <span class="nav-text">直播</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#视频播放"><span class="nav-number">2.23.</span> <span class="nav-text">视频播放</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#VR播放器"><span class="nav-number">2.24.</span> <span class="nav-text">VR播放器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#知识整合，学习资源"><span class="nav-number">2.25.</span> <span class="nav-text">知识整合，学习资源</span></a></li></ol></li></ol></div>
             
 
           </div>
@@ -820,7 +848,7 @@ show_date_time();
 
 <div class="theme-info">
   <div class="powered-by"></div>
-  <span class="post-count">博客全站共177.9k字</span>
+  <span class="post-count">博客全站共178.6k字</span>
 </div>
         
 
